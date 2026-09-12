@@ -1,14 +1,30 @@
 name: Deploy to surge.sh
 
+# Deploys on a tag push (a deliberate release) or when a PR into master is
+# merged - not on every plain push to master, so routine commits (data
+# fixes, refactors) don't each trigger a live deploy on their own.
 on:
   push:
+    tags:
+      - '*'
+  pull_request:
+    types: [closed]
     branches: [master]
 
 jobs:
   deploy:
+    # pull_request fires on every close, merged or not - skip the ones
+    # that were closed without merging (nothing to deploy).
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
+      # For a merged PR, check out master's actual tip rather than
+      # actions/checkout's default for pull_request events (the PR's
+      # synthetic pre-merge preview ref, which can go stale the moment the
+      # PR closes). For a tag push, github.ref already points at the tag.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && 'master' || github.ref }}
 
       - uses: actions/setup-go@v5
         with:
