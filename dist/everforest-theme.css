@@ -1,0 +1,221 @@
+/* An Everforest theme for Shoelace.
+   https://github.com/sainnhe/everforest - a low-contrast, muted-green
+   colorscheme originally built for Vim/Neovim. This file re-derives
+   Shoelace's five themeable color roles (neutral/primary/success/warning/
+   danger) from Everforest's actual palette (the "medium" contrast variant,
+   its default - see palette.md in that repo) instead of Shoelace's stock
+   Tailwind-style ramps, then retints the handful of other tokens that are
+   literal colors rather than references to those roles.
+
+   Load order: after vendor/shoelace/themes/light.css and dark.css, before
+   this app's own style.css (see style.css's :root comment on why order
+   matters - :root/.sl-theme-light and .sl-theme-dark carry equal
+   specificity, so whichever stylesheet loads last wins).
+
+   Everything Shoelace itself builds on top of these roles - input borders,
+   panel/tooltip backgrounds, disabled states, focus rings, badge and
+   button fills, and so on - is already expressed as var(--sl-color-
+   neutral-*) / var(--sl-color-primary-*) / etc. inside light.css/dark.css,
+   so overriding just the roles here is enough; nothing in this app (or in
+   vendor/shoelace/) reaches past them to Shoelace's raw --sl-color-gray-*,
+   red-*, amber-*, green-* ramps, so those are left at their stock values
+   rather than re-themed for no observer.
+
+   How each ramp was built (11 steps, 50 lightest/darkest through 950):
+   Shoelace's own ramp for the matching hue (green for primary, emerald for
+   success, amber for warning, red for danger) was used only as a *shape* -
+   its 11 relative lightness/saturation steps - with Everforest's real hue
+   substituted in and two real Everforest colors pinned exactly: the step-50
+   tint is one of Everforest's own pale background washes (bg_green/
+   bg_yellow/bg_red - the same "soft tinted panel" role this app's own
+   --success-bg/--warning-bg/--danger-bg already play), and step-600 (the
+   most-referenced step across Shoelace's components - solid button/badge
+   fills, focus rings) is Everforest's actual accent color for that role.
+   Every other step is that shape's curve remapped through those two fixed
+   points, so the ramp reads as genuine tints/shades of Everforest's own
+   colors rather than an arbitrary reskin. Primary and success both draw on
+   Everforest's green family (green itself for primary - it's the hue
+   Everforest's own UI uses for menu/tab selection - and the cooler aqua for
+   success, so the two stay visually distinct); success's step-50 uses
+   bg_green's own lightness but recolored to aqua's hue, since Everforest
+   has no separate pale aqua wash and reusing bg_green verbatim made
+   primary-50 and success-50 identical.
+
+   One deliberate departure from "step-600 is the literal accent hex", in
+   the *light* variant only: Everforest's light-mode accents are tuned as
+   colored text sitting on its cream background, not as solid fills behind
+   white button/badge text (Shoelace's own --sl-color-neutral-0, what solid
+   variants use for their text) - every one of them, green/aqua/yellow/red
+   alike, falls short of WCAG AA's 4.5:1 against white at its native
+   lightness (2.2-3.2:1 as shipped). Step-600 is instead that same hue and
+   saturation darkened just enough to clear 4.5:1 with white text - still
+   squarely in Everforest's own family, just deepened for legibility as a
+   fill rather than as text; the two lighter steps above it (still
+   template-shaped off this darkened 600) land closer to 3:1, which is what
+   buttons' :hover state uses - lighter and lower-contrast than the resting
+   state, mirroring how Shoelace's own stock ramps also dip on hover. Dark-
+   mode buttons don't have this problem (solid-button text there is
+   --sl-color-neutral-0's *dark* value, near-black, and Everforest's dark
+   accents are already light enough for 6-9:1 against it), so those ramps
+   use the real accent at 600 unmodified as described above.
+
+   The neutral ramp needed no synthesis: Everforest's medium-contrast
+   background ladder (bg_dim, bg0-bg5) plus its three greys and its
+   foreground color are 11 real, already-graded tones per mode - exactly
+   Shoelace's 11 steps - used here verbatim (light mode is one tone short,
+   so its darkest step extends Everforest's own fg color one step further).
+   The true 0/1000 endpoints (rarely used - mainly input backgrounds)
+   borrow Everforest's "hard" contrast bg0/bg_dim, its lightest and darkest
+   real tones anywhere in the palette, rather than pure white/black, which
+   Everforest deliberately never uses. */
+
+:root,
+:host,
+.sl-theme-light {
+  --sl-color-primary-50: #f0f1d2;
+  --sl-color-primary-100: #e9efbe;
+  --sl-color-primary-200: #e1eb99;
+  --sl-color-primary-300: #d7e85b;
+  --sl-color-primary-400: #c4dd14;
+  --sl-color-primary-500: #91a508;
+  --sl-color-primary-600: #6c7b01;
+  --sl-color-primary-700: #4b5501;
+  --sl-color-primary-800: #333a00;
+  --sl-color-primary-900: #202500;
+  --sl-color-primary-950: #090a00;
+
+  --sl-color-success-50: #d2f1e5;
+  --sl-color-success-100: #bfebdb;
+  --sl-color-success-200: #a0e1c9;
+  --sl-color-success-300: #74d3b0;
+  --sl-color-success-400: #42c494;
+  --sl-color-success-500: #329f77;
+  --sl-color-success-600: #298261;
+  --sl-color-success-700: #236e52;
+  --sl-color-success-800: #1e5f47;
+  --sl-color-success-900: #1b553f;
+  --sl-color-success-950: #143e2e;
+
+  --sl-color-warning-50: #faedcd;
+  --sl-color-warning-100: #f8e1a5;
+  --sl-color-warning-200: #f5cc62;
+  --sl-color-warning-300: #f4b81c;
+  --sl-color-warning-400: #d99f07;
+  --sl-color-warning-500: #ba8703;
+  --sl-color-warning-600: #976d00;
+  --sl-color-warning-700: #715100;
+  --sl-color-warning-800: #503900;
+  --sl-color-warning-900: #332500;
+  --sl-color-warning-950: #0a0700;
+
+  --sl-color-danger-50: #fde3da;
+  --sl-color-danger-100: #fccccb;
+  --sl-color-danger-200: #fbb6b5;
+  --sl-color-danger-300: #fa9391;
+  --sl-color-danger-400: #f85f5d;
+  --sl-color-danger-500: #f62e2a;
+  --sl-color-danger-600: #e80d09;
+  --sl-color-danger-700: #bf0a07;
+  --sl-color-danger-800: #a00906;
+  --sl-color-danger-900: #8a0705;
+  --sl-color-danger-950: #550403;
+
+  --sl-color-neutral-50: #fdf6e3;
+  --sl-color-neutral-100: #f4f0d9;
+  --sl-color-neutral-200: #efebd4;
+  --sl-color-neutral-300: #e6e2cc;
+  --sl-color-neutral-400: #e0dcc7;
+  --sl-color-neutral-500: #bdc3af;
+  --sl-color-neutral-600: #a6b0a0;
+  --sl-color-neutral-700: #939f91;
+  --sl-color-neutral-800: #829181;
+  --sl-color-neutral-900: #5c6a72;
+  --sl-color-neutral-950: #414b50;
+  --sl-color-neutral-0: #fffbef;
+  --sl-color-neutral-1000: #1e2326;
+
+  /* Stock light.css hardcodes these as literal hsl()s rather than
+     var(--sl-color-neutral-*)/var(--sl-color-primary-*), so the ramp
+     overrides above don't reach them - retinted by hand to Everforest's
+     warm neutral-900 (fg) hue/saturation, and to primary-600, respectively. */
+  --sl-shadow-x-small: 0 1px 2px hsl(202 11% 40% / 6%);
+  --sl-shadow-small: 0 1px 2px hsl(202 11% 40% / 12%);
+  --sl-shadow-medium: 0 2px 4px hsl(202 11% 40% / 12%);
+  --sl-shadow-large: 0 2px 8px hsl(202 11% 40% / 12%);
+  --sl-shadow-x-large: 0 4px 16px hsl(202 11% 40% / 12%);
+  --sl-overlay-background-color: hsl(202 11% 40% / 33%);
+  --sl-input-focus-ring-color: hsl(67.4 98.4% 24.3% / 40%);
+}
+
+.sl-theme-dark {
+  --sl-color-primary-50: #425047;
+  --sl-color-primary-100: #5c664d;
+  --sl-color-primary-200: #64714f;
+  --sl-color-primary-300: #718355;
+  --sl-color-primary-400: #839c5d;
+  --sl-color-primary-500: #8da961;
+  --sl-color-primary-600: #a7c080;
+  --sl-color-primary-700: #c6d7ab;
+  --sl-color-primary-800: #dfe9ce;
+  --sl-color-primary-900: #edf3e3;
+  --sl-color-primary-950: #fafcf7;
+
+  --sl-color-success-50: #425045;
+  --sl-color-success-100: #4d6653;
+  --sl-color-success-200: #4f7057;
+  --sl-color-success-300: #558361;
+  --sl-color-success-400: #5e9c6d;
+  --sl-color-success-500: #63a974;
+  --sl-color-success-600: #83c092;
+  --sl-color-success-700: #b3dabd;
+  --sl-color-success-800: #e1f1e5;
+  --sl-color-success-900: #fafdfa;
+  --sl-color-success-950: #fafdfa;
+
+  --sl-color-warning-50: #4d4c43;
+  --sl-color-warning-100: #726854;
+  --sl-color-warning-200: #887754;
+  --sl-color-warning-300: #a98f5a;
+  --sl-color-warning-400: #c1a56f;
+  --sl-color-warning-500: #ccac6e;
+  --sl-color-warning-600: #dbbc7f;
+  --sl-color-warning-700: #e8d0a2;
+  --sl-color-warning-800: #f8efdd;
+  --sl-color-warning-900: #fefcf9;
+  --sl-color-warning-950: #fefcf8;
+
+  --sl-color-danger-50: #514045;
+  --sl-color-danger-100: #754c4d;
+  --sl-color-danger-200: #88494a;
+  --sl-color-danger-300: #a8484a;
+  --sl-color-danger-400: #c55557;
+  --sl-color-danger-500: #d45d5f;
+  --sl-color-danger-600: #e67e80;
+  --sl-color-danger-700: #ed8c8e;
+  --sl-color-danger-800: #f7c2c3;
+  --sl-color-danger-900: #fbd5d5;
+  --sl-color-danger-950: #feeded;
+
+  --sl-color-neutral-50: #232a2e;
+  --sl-color-neutral-100: #2d353b;
+  --sl-color-neutral-200: #343f44;
+  --sl-color-neutral-300: #3d484d;
+  --sl-color-neutral-400: #475258;
+  --sl-color-neutral-500: #4f585e;
+  --sl-color-neutral-600: #56635f;
+  --sl-color-neutral-700: #7a8478;
+  --sl-color-neutral-800: #859289;
+  --sl-color-neutral-900: #9da9a0;
+  --sl-color-neutral-950: #d3c6aa;
+  --sl-color-neutral-0: #1e2326;
+  --sl-color-neutral-1000: #fffbef;
+
+  /* Dark theme's own shadows/overlay are already plain black at low alpha
+     (universal, not hue-specific), so only the focus ring - the one
+     literal, non-var hardcoded color - needs retinting here. Unlike the
+     light block above, this is the real, undarkened primary-600: dark-
+     mode solid-button text is --sl-color-neutral-0's dark (near-black)
+     value, so no accessibility adjustment was needed - see the top
+     comment. */
+  --sl-input-focus-ring-color: hsl(83.4 33.7% 62.7% / 40%);
+}

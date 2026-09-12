@@ -1,0 +1,676 @@
+:root {
+    color-scheme: light dark;
+
+    /* Everforest-derived (see everforest-theme.css, loaded before this
+       file, for the Shoelace side of the same palette and the reasoning
+       behind each color choice). --primary-color is exactly that file's
+       light --sl-color-primary-600, so hand-rolled elements and every
+       sl-* component read as one consistent accent rather than two. */
+    --primary-color: #6c7b01;
+    /* Text/icon color for content sitting directly on --primary-color
+       (the header bar) - flips per theme because Everforest's light-mode
+       accent is dark (wants light text) while its dark-mode accent is
+       light (wants dark text); see everforest-theme.css's top comment. */
+    --on-primary: #fffbef;
+    --on-primary-soft: rgba(255, 251, 239, 0.85);
+    --on-primary-faint: rgba(255, 251, 239, 0.5);
+    --secondary-color: #687566;
+    --success-color: #298261;
+    --success-bg: #d2f1e5;
+    --success-text: #1b553f;
+    --danger-color: #e80d09;
+    --danger-bg: #fde3da;
+    --danger-text: #8a0705;
+    --warning-bg: #faedcd;
+    --warning-text: #503900;
+    --warning-border: #f5cc62;
+    --bg-color: #f4f0d9;
+    --text-color: #5c6a72;
+    --text-muted: #515b50;
+    --card-bg: #fdf6e3;
+    --border-color: #e0dcc7;
+    --border-color-soft: #efebd4;
+    --selected-bg: #e9efbe;
+    --shadow-color: hsl(202 11% 40% / 10%);
+    --border-radius: 8px;
+    --spacing: 16px;
+}
+
+/* Dark palette: applied when the OS prefers dark and no explicit choice has
+   been made, or when the user has explicitly chosen dark via the toggle. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --primary-color: #a7c080;
+        --on-primary: #1e2326;
+        --on-primary-soft: rgba(30, 35, 38, 0.85);
+        --on-primary-faint: rgba(30, 35, 38, 0.5);
+        --secondary-color: #bbc3be;
+        --success-color: #83c092;
+        --success-bg: rgba(131, 192, 146, 0.18);
+        --success-text: #b3dabd;
+        --danger-color: #e67e80;
+        --danger-bg: rgba(230, 126, 128, 0.18);
+        --danger-text: #ed8c8e;
+        --warning-bg: rgba(219, 188, 127, 0.16);
+        --warning-text: #e8d0a2;
+        --warning-border: rgba(219, 188, 127, 0.4);
+        --bg-color: #232a2e;
+        --text-color: #d3c6aa;
+        --text-muted: #cbd2cd;
+        --card-bg: #343f44;
+        --border-color: #475258;
+        --border-color-soft: #3d484d;
+        --selected-bg: rgba(167, 192, 128, 0.16);
+        --shadow-color: rgba(0, 0, 0, 0.4);
+    }
+}
+
+:root[data-theme="dark"] {
+    --primary-color: #a7c080;
+    --on-primary: #1e2326;
+    --on-primary-soft: rgba(30, 35, 38, 0.85);
+    --on-primary-faint: rgba(30, 35, 38, 0.5);
+    --secondary-color: #bbc3be;
+    --success-color: #83c092;
+    --success-bg: rgba(131, 192, 146, 0.18);
+    --success-text: #b3dabd;
+    --danger-color: #e67e80;
+    --danger-bg: rgba(230, 126, 128, 0.18);
+    --danger-text: #ed8c8e;
+    --warning-bg: rgba(219, 188, 127, 0.16);
+    --warning-text: #e8d0a2;
+    --warning-border: rgba(219, 188, 127, 0.4);
+    --bg-color: #232a2e;
+    --text-color: #d3c6aa;
+    --text-muted: #cbd2cd;
+    --card-bg: #343f44;
+    --border-color: #475258;
+    --border-color-soft: #3d484d;
+    --selected-bg: rgba(167, 192, 128, 0.16);
+    --shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: var(--on-primary);
+    padding: var(--spacing);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-titles {
+    width: 100%;
+}
+
+.title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-toggle {
+    margin-left: auto;
+    color: var(--on-primary);
+    font-size: 1.2rem;
+}
+
+.theme-toggle::part(base) {
+    padding: 4px;
+}
+
+.subtitle-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+/* Breadcrumb replaces the old plain "Home" header button - the header's
+   own background is the app's primary color, so every part Shoelace
+   would otherwise color with its neutral-gray defaults needs an explicit
+   override here or it reads as low-contrast gray-on-blue. */
+#breadcrumb {
+    flex: 1;
+    min-width: 0;
+}
+
+#breadcrumb sl-breadcrumb-item {
+    color: var(--on-primary-soft);
+}
+
+#breadcrumb sl-breadcrumb-item::part(label) {
+    color: var(--on-primary-soft);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+#breadcrumb sl-breadcrumb-item::part(separator) {
+    color: var(--on-primary-faint);
+}
+
+#breadcrumb sl-breadcrumb-item:last-child::part(label) {
+    color: var(--on-primary);
+}
+
+#breadcrumb sl-breadcrumb-item.clickable::part(label) {
+    cursor: pointer;
+}
+
+#breadcrumb sl-breadcrumb-item.clickable::part(label):hover {
+    text-decoration: underline;
+}
+
+.timer {
+    font-family: monospace;
+}
+
+.timer::part(base) {
+    font-size: 1.1rem;
+    padding: 4px 10px;
+}
+
+.timer[variant="danger"] {
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    50% { opacity: 0.5; }
+}
+
+.time-taken {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--secondary-color);
+}
+
+h1 { font-size: 1.25rem; }
+
+h2 { font-size: 1.1rem; margin-bottom: var(--spacing); }
+h3 { font-size: 1rem; margin-bottom: var(--spacing); }
+
+/* Mode-select cards (home view) - each is a front door to one section of
+   the app (see #section-view), so the whole card is clickable/focusable
+   (role="button"/tabindex in the markup) rather than needing its own
+   button element the way the special-mode cards below do. */
+.mode-select-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+.mode-select-card {
+    cursor: pointer;
+    position: relative;
+}
+
+.mode-select-card::part(base) {
+    height: 100%;
+    border-color: var(--border-color-soft);
+    transition: border-color 0.15s ease;
+}
+
+.mode-select-card:hover::part(base),
+.mode-select-card:focus-visible::part(base) {
+    border-color: var(--primary-color);
+}
+
+.mode-select-card::part(body) {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mode-select-icon {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    margin-bottom: 6px;
+}
+
+.mode-select-title {
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.mode-select-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.mode-select-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* Section view panels - only one shown at a time (toggled via .hidden);
+   the Drill All button (mistakes/notsure only) sits above the section's
+   own hint/list rather than in a shared header, since the other three
+   panels (exams, special modes, categories) don't have one. */
+.drill-all-btn {
+    display: block;
+    margin-left: auto;
+    margin-bottom: var(--spacing);
+}
+
+.special-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
+/* random-exam-btn / marathon-btn live inside these sl-card's footer slot
+   (see vendor/shoelace/) - card supplies the box itself, this just lays
+   out its header (title + Timed/Untimed badge) and stretches the footer
+   button to the card's full width. */
+.mode-card [slot="header"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: bold;
+}
+
+.mode-card p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.mode-card sl-button[slot="footer"] {
+    width: 100%;
+}
+
+.home-heading {
+    font-size: 1.4rem;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+main {
+    flex: 1;
+    padding: var(--spacing);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 12px;
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#exam-list {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+#exam-list sl-button::part(base) {
+    font-weight: bold;
+    font-size: 0.8rem;
+    padding: 0 2px;
+}
+
+@media (max-width: 480px) {
+    #exam-list {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Answer options: sl-radio / sl-checkbox (see vendor/shoelace/) replace
+   the old plain <input>, but the selectable-row look (border, padding,
+   selected/correct/incorrect background) has no Shoelace equivalent, so
+   it's still hand-rolled here, just re-targeted at their exposed ::part
+   selectors instead of a wrapping <label>. */
+.answer-option::part(base) {
+    display: flex;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.answer-option::part(label) {
+    margin-left: 12px;
+}
+
+.answer-option.selected::part(base) {
+    border-color: var(--primary-color);
+    background-color: var(--selected-bg);
+}
+
+.answer-option.correct::part(base) {
+    background-color: var(--success-bg);
+    border-color: var(--success-color);
+    color: var(--success-text);
+}
+
+.answer-option.incorrect::part(base) {
+    background-color: var(--danger-bg);
+    border-color: var(--danger-color);
+    color: var(--danger-text);
+}
+
+sl-radio-group::part(form-control-input) {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.controls {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+}
+
+.controls sl-button {
+    flex: 1;
+}
+
+/* The result view's Try Again / Back to Home pair is an sl-button-group
+   (see vendor/shoelace/) rather than two loose buttons - Shoelace joins
+   them visually, so the flex-and-gap above doesn't apply; this fills the
+   same role for the group as a whole. */
+.controls sl-button-group {
+    display: flex;
+    width: 100%;
+}
+
+.controls sl-button-group sl-button {
+    flex: 1;
+}
+
+#feedback-alert {
+    margin-top: 20px;
+}
+
+#explanation-text {
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+
+.result-card {
+    text-align: center;
+}
+
+.result-card::part(body) {
+    padding: 24px;
+}
+
+#time-up-msg {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+#score-container {
+    margin: 24px 0;
+}
+
+#score-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+#score-percentage {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--primary-color);
+}
+
+#wrong-answers-container {
+    text-align: left;
+    margin-top: 32px;
+}
+
+#wrong-answers-container h3 {
+    border-bottom: 2px solid var(--border-color-soft);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+}
+
+.wrong-item::part(header) {
+    font-weight: bold;
+}
+
+.correct-answer-was {
+    font-size: 0.9rem;
+    color: var(--success-color);
+    margin-bottom: 8px;
+}
+
+.wrong-explanation {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Section hints / empty states */
+.section-hint {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    margin-bottom: var(--spacing);
+}
+
+/* Category drill list - sl-button rows (see vendor/shoelace/); the count
+   is a plain span rather than an sl-badge because Shoelace pins any
+   slotted sl-badge to the button's corner as an absolutely-positioned
+   overlay (its notification-count convention - see vendor/shoelace/'s
+   git history for where that first came up), which is exactly wrong for
+   a value that's meant to sit inline at the end of the row. */
+.category-btn {
+    width: 100%;
+}
+
+.category-btn::part(base) {
+    font-size: 0.9rem;
+}
+
+/* Not justify-content:space-between on the base part: sl-button's row is
+   prefix+label+suffix, three flex items, and space-between puts an equal
+   gap before label too even though prefix is empty here - it reads as
+   centered instead of flush left. Growing the label to fill the
+   remaining space (after the empty prefix, before the count) gets a
+   flush-left name and a flush-right count with one change instead. */
+.category-btn::part(label) {
+    flex: 1;
+    text-align: left;
+}
+
+.category-count {
+    flex-shrink: 0;
+    background-color: var(--bg-color);
+    color: var(--secondary-color);
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+/* Mistake / Not-sure list items - sl-card (see vendor/shoelace/): header
+   slot holds the category sl-tag + remove sl-icon-button, default slot
+   the question text, footer slot the seen/correct/wrong stats (only
+   when there are any - an empty footer slot renders no footer chrome). */
+.list-section {
+    margin-bottom: var(--spacing);
+}
+
+.list-item {
+    cursor: pointer;
+}
+
+.list-item::part(base) {
+    border-color: var(--border-color-soft);
+}
+
+.list-item:hover::part(base) {
+    border-color: var(--primary-color);
+}
+
+.list-item::part(header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.list-item-question {
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.list-item-meta {
+    font-size: 0.75rem;
+    color: var(--secondary-color);
+}
+
+.list-item-remove {
+    font-size: 1rem;
+}
+
+/* Island walk: the entity connecting the current question to the previous
+   one (see renderQuestion's islandwalkVia branch), shown above the
+   question text only during an island walk session. */
+.islandwalk-via {
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+.islandwalk-via b {
+    color: var(--primary-color);
+}
+
+.islandwalk-bridge-source {
+    color: var(--secondary-color);
+    font-size: 0.8rem;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* Quiz header + not-sure toggle */
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: var(--spacing);
+}
+
+.quiz-progress {
+    flex: 1;
+    min-width: 0;
+}
+
+#progress {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+#progress-bar {
+    --height: 6px;
+}
+
+.notsure-toggle {
+    font-size: 1.3rem;
+    color: var(--secondary-color);
+}
+
+.notsure-toggle.active {
+    color: var(--warning-text);
+}
+
+.hidden { display: none !important; }
+
+footer {
+    padding: var(--spacing);
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--secondary-color);
+    border-top: 1px solid var(--border-color-soft);
+    margin-top: auto;
+}
+
+footer a {
+    color: var(--primary-color);
+}
+
+/* A <button>, not an <a href="#">: it triggers a confirmation dialog
+   rather than navigating anywhere, so it keeps real button semantics
+   (and native keyboard/click behavior) while being reset to look like
+   the footer's other, genuinely-navigating link above it. */
+.link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--primary-color);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.update-info {
+    color: var(--secondary-color);
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+    header { padding: 12px; }
+    main { padding: 12px; }
+    #score-percentage { font-size: 2.5rem; }
+    .special-modes,
+    .mode-select-grid {
+        grid-template-columns: 1fr;
+    }
+}

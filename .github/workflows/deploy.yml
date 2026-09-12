@@ -1,0 +1,39 @@
+name: Deploy to surge.sh
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Regenerates dist/island-walk-pools.json (the data behind "Island
+      # walk" mode - see docs/KNOWLEDGE-WALK-DESIGN.md) fresh on every
+      # deploy, so it never drifts from dist/knowledge-map.html. Non-zero
+      # exit (an island falling short of its target walk count) fails this
+      # step, which skips every step after it - the site is never deployed
+      # with a broken or thin pool.
+      - name: Generate Island walk pools
+        run: go run ./cmd/liuk leanwalk dist/island-walk-pools.json
+
+      # Stamps the footer with the commit actually being deployed, so
+      # "Build <hash>" reflects real build provenance.
+      - name: Embed build hash
+        run: sed -i "s/__GIT_SHA__/$(git rev-parse --short HEAD)/" dist/index.html
+
+      # Official surge CLI via npx - no third-party Action, no
+      # package.json/lockfile needed for a one-command deploy. --project
+      # dist deploys only the site itself, not the Go tool's own source
+      # (cmd/, internal/, go.mod) or repo-only docs (README.md, docs/).
+      - name: Deploy to surge.sh
+        env:
+          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+        run: npx --yes surge --project dist --domain life-in-the-uk.surge.sh

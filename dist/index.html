@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Life in the UK Test Exam Practice</title>
+    <link rel="stylesheet" href="vendor/shoelace/themes/light.css">
+    <link rel="stylesheet" href="vendor/shoelace/themes/dark.css">
+    <!-- Loaded after Shoelace's own theme files, deliberately: overrides
+         their default color ramps with an Everforest-derived palette (see
+         everforest-theme.css for the derivation) - :root/.sl-theme-light
+         and .sl-theme-dark carry equal specificity, so load order is what
+         decides which wins. -->
+    <link rel="stylesheet" href="everforest-theme.css">
+    <!-- Loaded last: this app's own layout/component CSS, plus its own
+         --primary-color etc. custom properties (see its :root block),
+         kept in sync with everforest-theme.css's palette by hand. -->
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Applied before first paint so an explicit saved theme choice
+        // (different from the OS preference) doesn't flash the wrong
+        // theme for a frame; app.js re-applies this later to sync the
+        // toggle icon. sl-theme-dark is Shoelace's own dark-mode hook
+        // (vendor/shoelace/themes/dark.css scopes its overrides under
+        // that class, not a prefers-color-scheme media query), so it has
+        // to be set here too, from the same effective (stored-or-system)
+        // theme, or Shoelace components would flash light in dark mode.
+        // Stays a plain classic script (not type="module") deliberately:
+        // module scripts are deferred until after parsing, which would
+        // reintroduce the very flash this exists to prevent.
+        (function () {
+            try {
+                var theme = localStorage.getItem('liuk_theme');
+                var isDark = theme ? theme === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (theme) document.documentElement.setAttribute('data-theme', theme);
+                if (isDark) document.documentElement.classList.add('sl-theme-dark');
+            } catch (e) { /* localStorage unavailable; fall back to OS preference via CSS */ }
+        })();
+    </script>
+    <script type="module">
+        // Separate from app.js and from the classic script above: sl-icon
+        // (and anything that renders one internally - sl-icon-button,
+        // sl-alert, the checked-icon inside sl-radio/sl-checkbox) resolves
+        // its SVG relative to this base path the moment it's upgraded,
+        // which for the elements already sitting in this static HTML
+        // happens synchronously as soon as app.js's imports register
+        // them - before a single line of app.js's own code has run. A
+        // module script placed here, earlier in document order, is
+        // guaranteed to finish (module scripts run in relative document
+        // order) before app.js's module body starts, so this is the only
+        // reliable place to call it.
+        import { setBasePath } from '/vendor/shoelace/set-base-path.js';
+        setBasePath('/vendor/shoelace');
+    </script>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-main">
+                <div class="header-titles">
+                    <div class="title-row">
+                        <h1>Life in the UK Test Exam Practice</h1>
+                        <sl-icon-button id="theme-toggle" name="moon-stars-fill" label="Switch to dark mode" class="theme-toggle"></sl-icon-button>
+                    </div>
+                    <div class="subtitle-row">
+                        <sl-breadcrumb id="breadcrumb" class="hidden"></sl-breadcrumb>
+                        <sl-badge id="timer" variant="neutral" pill class="timer hidden">45:00</sl-badge>
+                        <sl-button id="stop-btn" variant="danger" size="small" class="hidden">Stop</sl-button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <!-- Home View: mode selector. Each card is a front door to one
+                 section of the app (rendered in #section-view below) rather
+                 than every section being stacked on this one page. -->
+            <div id="home-view">
+                <h2 class="home-heading">What do you want to practice?</h2>
+                <div class="mode-select-grid">
+                    <sl-card id="mode-select-exams" class="mode-select-card" tabindex="0" role="button">
+                        <sl-icon class="mode-select-icon" name="grid-3x3-gap-fill"></sl-icon>
+                        <div class="mode-select-title">Numbered exams</div>
+                        <p class="mode-select-desc">Fixed exams from the official question bank.</p>
+                    </sl-card>
+                    <sl-card id="mode-select-special" class="mode-select-card" tabindex="0" role="button">
+                        <sl-icon class="mode-select-icon" name="shuffle"></sl-icon>
+                        <div class="mode-select-title">Special modes</div>
+                        <p class="mode-select-desc">Random and Marathon exams drawn from the full bank.</p>
+                    </sl-card>
+                    <sl-card id="mode-select-categories" class="mode-select-card" tabindex="0" role="button">
+                        <sl-icon class="mode-select-icon" name="collection-fill"></sl-icon>
+                        <div class="mode-select-title">Practice by category</div>
+                        <p class="mode-select-desc">Drill questions grouped by topic, untimed.</p>
+                    </sl-card>
+                    <!-- Not a mode-select-card wired to showSection() (see app.js) -
+                         this one navigates to its own standalone page rather than
+                         opening a section-view panel. -->
+                    <sl-card id="mode-select-knowledge-map" class="mode-select-card" tabindex="0" role="link">
+                        <sl-icon class="mode-select-icon" name="diagram-3-fill"></sl-icon>
+                        <div class="mode-select-title">Knowledge map</div>
+                        <p class="mode-select-desc">Explore how people, places and events connect across every question.</p>
+                    </sl-card>
+                    <!-- Mistakes/Not sure are personal review queues built from
+                         progress, not practice modes in their own right - placed
+                         last, after everything that's just "pick a way to practice". -->
+                    <sl-card id="mode-select-mistakes" class="mode-select-card" tabindex="0" role="button">
+                        <sl-badge id="mistakes-count-badge" class="mode-select-badge hidden" variant="danger" pill></sl-badge>
+                        <sl-icon class="mode-select-icon" name="exclamation-triangle-fill"></sl-icon>
+                        <div class="mode-select-title">Review mistakes</div>
+                        <p class="mode-select-desc">Revisit questions you've gotten wrong.</p>
+                    </sl-card>
+                    <sl-card id="mode-select-notsure" class="mode-select-card" tabindex="0" role="button">
+                        <sl-badge id="notsure-count-badge" class="mode-select-badge hidden" variant="neutral" pill></sl-badge>
+                        <sl-icon class="mode-select-icon" name="bookmark-fill"></sl-icon>
+                        <div class="mode-select-title">Not sure</div>
+                        <p class="mode-select-desc">Questions you bookmarked to revisit later.</p>
+                    </sl-card>
+                </div>
+            </div>
+
+            <!-- Section View: the content behind one mode-select card. Only
+                 one of the five panels below is shown at a time; the
+                 breadcrumb (not a heading here) carries the section title,
+                 same as the quiz view never repeats its own name inline. -->
+            <div id="section-view" class="hidden">
+                <div id="section-exams" class="section-panel hidden">
+                    <div id="exam-list" class="grid">
+                        <!-- Exam buttons will be injected here -->
+                    </div>
+                </div>
+
+                <div id="section-special" class="section-panel hidden">
+                    <div class="special-modes">
+                        <sl-card class="mode-card">
+                            <div slot="header">Random exam <sl-badge variant="neutral" pill>Timed</sl-badge></div>
+                            <p>24 questions pulled from the full question bank, 45-minute countdown - closest to sitting the real test.</p>
+                            <sl-button slot="footer" id="random-exam-btn" variant="primary">Start</sl-button>
+                        </sl-card>
+                        <sl-card class="mode-card">
+                            <div slot="header">Marathon exam <sl-badge variant="neutral" pill>Untimed</sl-badge></div>
+                            <p>Every question in the bank, one sitting, no clock. Stop whenever you like - only what you answered counts.</p>
+                            <sl-button slot="footer" id="marathon-btn" variant="primary">Start</sl-button>
+                        </sl-card>
+                        <sl-card class="mode-card">
+                            <div slot="header">Island walk</div>
+                            <p>Walk a connected cluster of the Knowledge Map, one adjacent question at a time.</p>
+                            <sl-button slot="footer" id="islandwalk-open-btn" variant="primary">Start</sl-button>
+                        </sl-card>
+                    </div>
+                </div>
+
+                <div id="section-categories" class="section-panel hidden">
+                    <p class="section-hint">Drill questions grouped by topic, untimed.</p>
+                    <div id="category-list" class="stack">
+                        <!-- Category buttons will be injected here -->
+                    </div>
+                </div>
+
+                <div id="section-mistakes" class="section-panel hidden">
+                    <sl-button id="drill-mistakes-btn" size="small" class="hidden drill-all-btn">Drill all</sl-button>
+                    <p id="mistakes-empty" class="section-hint">No mistakes tracked yet. Questions you get wrong will show up here so you can revisit them.</p>
+                    <div id="mistakes-list" class="stack list-section">
+                        <!-- Wrong-answer entries will be injected here -->
+                    </div>
+                </div>
+
+                <div id="section-notsure" class="section-panel hidden">
+                    <sl-button id="drill-notsure-btn" size="small" class="hidden drill-all-btn">Drill all</sl-button>
+                    <p id="notsure-empty" class="section-hint">Nothing marked yet. While practicing, tap the bookmark on a question to save it here.</p>
+                    <div id="notsure-list" class="stack list-section">
+                        <!-- Not-sure entries will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Island walk: pick a connected cluster of the Knowledge Map, then
+                     one of a few verified starting points into it (see
+                     ../docs/KNOWLEDGE-WALK-DESIGN.md). Two stages within one panel, like the
+                     mistakes/notsure lists funnel into a single question without a
+                     separate top-level view - #islandwalk-islands (pick a cluster)
+                     and #islandwalk-starts (pick a starting point) toggle visibility
+                     rather than being two different sections. -->
+                <div id="section-islandwalk" class="section-panel hidden">
+                    <p class="section-hint">Every entity - person, place or event - appears at least once, and each question is always connected to the one before it (sharing a topic, or bordering one that is), so you're never dropped into something unrelated.</p>
+                    <sl-spinner id="islandwalk-loading" style="font-size: 2rem;"></sl-spinner>
+                    <div id="islandwalk-islands" class="stack hidden">
+                        <!-- Island buttons will be injected here -->
+                    </div>
+                    <div id="islandwalk-starts" class="stack hidden">
+                        <sl-button id="islandwalk-back-btn" size="small" variant="text">← Choose a different cluster</sl-button>
+                        <p class="section-hint">Pick a starting point:</p>
+                        <div id="islandwalk-start-list" class="stack">
+                            <!-- Starting-point buttons will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz View -->
+            <div id="quiz-view" class="hidden">
+                <div class="quiz-header">
+                    <div class="quiz-progress">
+                        <span id="progress">Loading…</span>
+                        <sl-progress-bar id="progress-bar" value="0"></sl-progress-bar>
+                    </div>
+                    <sl-icon-button id="notsure-btn" name="bookmark" label="Save this question to revisit later" class="notsure-toggle"></sl-icon-button>
+                </div>
+
+                <div id="question-container">
+                    <sl-tag id="question-category" variant="primary" size="small" class="hidden"></sl-tag>
+                    <!-- Island walk only (see renderQuestion's islandwalkVia branch) -
+                         the entity connecting this question to the previous one, plus,
+                         when that connection isn't a shared entity, the actual third
+                         question that establishes the bridge (so the link is
+                         checkable, not just an assertion - see
+                         ../docs/KNOWLEDGE-WALK-DESIGN.md's "cite the evidence" section). -->
+                    <div id="islandwalk-via-line" class="islandwalk-via hidden">
+                        <span id="islandwalk-via-text"></span>
+                        <div id="islandwalk-bridge-source" class="islandwalk-bridge-source hidden"></div>
+                    </div>
+                    <h3 id="question-text">Question text goes here?</h3>
+                    <div id="answers-container" class="stack">
+                        <!-- Answer options will be injected here -->
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <sl-button id="check-btn" variant="primary" disabled>Check</sl-button>
+                    <sl-button id="next-btn" variant="success" class="hidden">Next</sl-button>
+                </div>
+
+                <sl-alert id="feedback-alert">
+                    <sl-icon slot="icon" id="feedback-icon"></sl-icon>
+                    <strong id="result-status"></strong>
+                    <div id="explanation-text"></div>
+                </sl-alert>
+            </div>
+
+            <!-- Result View -->
+            <div id="result-view" class="hidden">
+                <sl-card class="result-card">
+                    <sl-alert id="time-up-msg" variant="warning">
+                        <sl-icon slot="icon" name="alarm"></sl-icon>
+                        Time's up!
+                    </sl-alert>
+                    <h2>Exam completed</h2>
+                    <div id="score-container">
+                        <span id="score-text">Calculating score...</span>
+                        <div id="score-percentage">--%</div>
+                        <div id="time-taken-text" class="time-taken">Time Taken: 00:00</div>
+                    </div>
+
+                    <div id="wrong-answers-container" class="hidden">
+                        <h3>Incorrect questions</h3>
+                        <div id="wrong-answers-list" class="stack">
+                            <!-- Wrong questions will be injected here -->
+                        </div>
+                    </div>
+
+                    <sl-button-group class="controls">
+                        <sl-button id="restart-btn" variant="primary">Try again</sl-button>
+                        <sl-button id="result-home-btn" variant="default">Back to home</sl-button>
+                    </sl-button-group>
+                </sl-card>
+            </div>
+        </main>
+        <footer>
+            <p><a href="https://github.com/bbkingisking/life-in-the-uk-test" target="_blank" rel="noopener">Source code</a> (forked from <a href="https://github.com/DHKLeung/life-in-the-uk-test" target="_blank" rel="noopener">DHKLeung/life-in-the-uk-test</a>)</p>
+            <p><a href="exams.json" download>Download all exams (JSON)</a></p>
+            <p><button type="button" id="delete-data-btn" class="link-btn">Delete all browser data</button></p>
+            <p class="update-info">Build <span id="build-hash">__GIT_SHA__</span></p>
+        </footer>
+
+        <sl-dialog id="delete-data-dialog" label="Delete all browser data?">
+            <p>This permanently erases everything this app has saved in
+                this browser: your theme choice, exam progress, tracked
+                mistakes, and "not sure" bookmarks. This can't be undone.</p>
+            <sl-button slot="footer" id="delete-data-cancel-btn">Cancel</sl-button>
+            <sl-button slot="footer" id="delete-data-confirm-btn" variant="danger">Delete everything</sl-button>
+        </sl-dialog>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
