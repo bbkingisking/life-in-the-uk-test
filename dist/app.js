@@ -237,6 +237,7 @@ const resultHomeBtn = document.getElementById('result-home-btn');
 // Home Mode Buttons
 const randomExamBtn = document.getElementById('random-exam-btn');
 const marathonBtn = document.getElementById('marathon-btn');
+const leastSeenBtn = document.getElementById('leastseen-btn');
 
 // Category / Review sections
 const categoryList = document.getElementById('category-list');
@@ -577,6 +578,27 @@ function startMarathon() {
         { label: 'Home', onClick: goHome },
         { label: SECTION_LABELS.special, onClick: () => showSection('special') },
         { label: 'Marathon exam' }
+    ], { timed: false, stoppable: true });
+}
+
+function startLeastSeenDrill() {
+    const all = getAllQuestions();
+
+    // Ascending by times seen, unseen questions (no stats entry) sort first.
+    const sorted = [...all].sort((a, b) => {
+        const seenA = userProgress.stats[a.uid]?.seen || 0;
+        const seenB = userProgress.stats[b.uid]?.seen || 0;
+        return seenA - seenB;
+    });
+
+    const count = Math.max(1, Math.ceil(sorted.length * 0.15));
+    const leastSeen = sorted.slice(0, count);
+
+    currentMode = { type: 'leastseen' };
+    setupQuiz(shuffle(leastSeen), [
+        { label: 'Home', onClick: goHome },
+        { label: SECTION_LABELS.special, onClick: () => showSection('special') },
+        { label: 'Least frequently seen' }
     ], { timed: false, stoppable: true });
 }
 
@@ -1029,6 +1051,7 @@ function restartExam() {
         case 'exam': startExam(currentMode.payload); break;
         case 'random': startRandomExam(); break;
         case 'marathon': startMarathon(); break;
+        case 'leastseen': startLeastSeenDrill(); break;
         case 'category': startCategoryDrill(currentMode.payload); break;
         case 'mistakes': startMistakesDrill(); break;
         case 'notsure': startNotSureDrill(); break;
@@ -1070,6 +1093,7 @@ nextBtn.onclick = nextQuestion;
 stopBtn.onclick = () => showResults();
 randomExamBtn.onclick = startRandomExam;
 marathonBtn.onclick = startMarathon;
+leastSeenBtn.onclick = startLeastSeenDrill;
 restartBtn.onclick = restartExam;
 resultHomeBtn.onclick = goHome;
 drillMistakesBtn.onclick = startMistakesDrill;
