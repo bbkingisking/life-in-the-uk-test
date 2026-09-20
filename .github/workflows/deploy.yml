@@ -1,8 +1,5 @@
 name: Deploy to surge.sh
 
-# Deploys on a tag push (a deliberate release) or when a PR into master is
-# merged - not on every plain push to master, so routine commits (data
-# fixes, refactors) don't each trigger a live deploy on their own.
 on:
   push:
     tags:
@@ -17,7 +14,25 @@ jobs:
     # that were closed without merging (nothing to deploy).
     if: github.event_name == 'push' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    env:
+      # Undefined/empty secrets both resolve to "" here, so the first step
+      # catches them either way.
+      SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+      SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
     steps:
+      # Fails the job (red X - the workflow does NOT count as success)
+      # before any other step runs, so a typo'd or missing secret can't
+      # burn a runner only to die at the surge step.
+      - name: Verify surge credentials
+        run: |
+          missing=()
+          [[ -n "${SURGE_LOGIN}" ]] || missing+=("SURGE_LOGIN")
+          [[ -n "${SURGE_TOKEN}" ]] || missing+=("SURGE_TOKEN")
+          if (( ${#missing[@]} )); then
+            echo "::error::Missing or empty required secret(s): ${missing[*]} - set them under Settings → Secrets and variables → Actions (repo or environment)"
+            exit 1
+          fi
+
       # For a merged PR, check out master's actual tip rather than
       # actions/checkout's default for pull_request events (the PR's
       # synthetic pre-merge preview ref, which can go stale the moment the
@@ -49,7 +64,4 @@ jobs:
       # dist deploys only the site itself, not the Go tool's own source
       # (cmd/, internal/, go.mod) or repo-only docs (README.md, docs/).
       - name: Deploy to surge.sh
-        env:
-          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
-          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
         run: npx --yes surge --project dist --domain life-in-the-uk.surge.sh
